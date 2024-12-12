@@ -58,7 +58,7 @@ fun App() {
 
                         1 -> {
                             Text(text = "Intellectual")
-                            Box(modifier = Modifier.width(400.dp).height(400.dp)) {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                                 CalendarView()
                             }
                         }

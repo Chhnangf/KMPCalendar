@@ -1,33 +1,33 @@
 package org.example.charts.calendar.data
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.*
 import kotlinx.datetime.*
+import org.example.charts.calendar.utils.calculateBiorhythmsForMonth
 
 class CalendarViewModel: ViewModel() {
 
-    private var newDate = MutableStateFlow(Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date)
-    private val _uiState = MutableStateFlow(CalendarState(
-        year = newDate.value.year, month = newDate.value.month.number, day = newDate.value.dayOfMonth,
-    ))
 
-    val uiState: StateFlow<CalendarState> = _uiState.asStateFlow()
+    var _calendarState = MutableStateFlow<CalendarState>(CalendarState())
 
-    fun updateYearMonth(year: Int, month: Int) {
-        _uiState.update { it.copy(year = year, month = month) }
+    val calendarState = _calendarState.map { calendar ->
+        calendar.copy(calendar.targetDate,biorhythmState = calculateBiorhythmsForMonth(targetDate = calendar.targetDate)) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), _calendarState.value)
+
+
+
+    // 提供一个方法来更新日期
+    fun updateDate(offset: Int) {
+        val newDate = _calendarState.value.targetDate.plus(DatePeriod(months = offset))
+        _calendarState.update { it.copy(targetDate = newDate) }
     }
 
-    fun selectDateOfDay(year: Int, month: Int, day: Int) {
-        _uiState.update { newCalendarState ->
-            newCalendarState.copy(
-                year = year,
-                month = month,
-                day = day,
-            )
-        }
+    fun onSelectedDate(selectedDate: LocalDate) {
+        _calendarState.update { it.copy(selectedDate = selectedDate) }
     }
+
+
+
 
 }
