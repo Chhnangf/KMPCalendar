@@ -2,6 +2,8 @@ package org.example.charts.calendar.ui
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.Button
@@ -13,74 +15,84 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import kotlinx.datetime.*
+import kotlinx.datetime.number
 import org.example.charts.calendar.data.CalendarViewModel
 import org.example.charts.calendar.utils.getDaysInMonth
 import org.example.charts.calendar.utils.getStartDayOfWeek
 
 @Composable
 fun CalendarView() {
-    var nowDate by remember { mutableStateOf(Clock.System.todayIn(TimeZone.currentSystemDefault())) }
 
     val vm: CalendarViewModel = CalendarViewModel()
-    val uiState by vm.uiState.collectAsState()
+
+
+    val calendarState by vm.calendarState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val initialCount = 50
     val pagerState = rememberPagerState(initialPage = initialCount, pageCount = { 120 })
     var count = 50
     Surface {
-        Column(Modifier.fillMaxHeight()) {
+        Row(Modifier.fillMaxSize()) {
+            Column(Modifier.fillMaxHeight().weight(0.6f)) {
+                Text("currentDate=${calendarState.targetDate}, selectedDate=${calendarState.selectedDate}")
 
-            Text("${uiState.year}-${uiState.month}-${uiState.day}")
-            Row {
-                Button(onClick = {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                    }
+                Row {
+                    Button(onClick = {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
+                        }
 
-                }) { Text("Previous") }
+                    }) { Text("Previous") }
 
-                Button(onClick = {
-                    coroutineScope.launch {
-                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                    }
+                    Button(onClick = {
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                        }
 
-                }) { Text("Next") }
+                    }) { Text("Next") }
 
-            }
-            WeekTitle()
-
-            LaunchedEffect(key1 = pagerState.currentPage) {
-                val offset = pagerState.currentPage - count // 假设初始页面为第50页
-
-                // 创建一个基于当前状态的新日期，并根据偏移量调整月份
-                nowDate = nowDate.plus(DatePeriod(months = offset))
-
-                // 更新 ViewModel 中的状态
-                vm.updateYearMonth(nowDate.year, nowDate.month.number)
-
-                // 更新 nowDate 以便下一次计算
-//                nowDate = newDate
-
-                // 更新 ViewModel 中的状态
-                vm.updateYearMonth(nowDate.year, nowDate.month.number)
-                count = pagerState.currentPage
-            }
-
-            HorizontalPager(state = pagerState) { pageIndex ->
-                Column() {
-                    Calendar(vm)
                 }
+
+                LaunchedEffect(key1 = pagerState.currentPage) {
+                    val offset = pagerState.currentPage - count // 假设初始页面为第50页
+
+                    // 创建一个基于默认LocalDate的新LocalDate实例，并根据偏移量调整月份
+                    vm.updateDate(offset)
+
+                    count = pagerState.currentPage
+                }
+
+                HorizontalPager(state = pagerState) { pageIndex ->
+                    Column() {
+                        Calendar(vm)
+                    }
+
+                }
+
+            }
+
+            LazyColumn(Modifier.fillMaxHeight().weight(0.4f)) {
+                itemsIndexed(calendarState.biorhythmState) { index, item ->
+                    Text("$index- $item")
+                }
+
 
             }
 
         }
 
+
     }
 }
 
+
 @Composable
-fun WeekTitle() {
+fun Calendar(vm: CalendarViewModel) {
+
+    val calendarState by vm.calendarState.collectAsState()
+    val daysOfMonth = getDaysInMonth(calendarState.selectedDate.year, calendarState.selectedDate.month.number)
+    val startDayOfWeek = getStartDayOfWeek(calendarState.selectedDate.year, calendarState.selectedDate.month.number)
+
     val daysOfWeek = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -89,7 +101,7 @@ fun WeekTitle() {
     ) {
         daysOfWeek.forEach { day ->
             Box(
-                modifier = Modifier.weight(1f).border(1.dp, Color.Green),
+                modifier = Modifier.weight(1f),
                 contentAlignment = Alignment.Center
             ) {
                 Text(text = day)
@@ -97,14 +109,6 @@ fun WeekTitle() {
         }
 
     }
-}
-
-@Composable
-fun Calendar(vm: CalendarViewModel) {
-
-    val uiState by vm.uiState.collectAsState()
-    val daysOfMonth = getDaysInMonth(uiState.year, uiState.month)
-    val startDayOfWeek = getStartDayOfWeek(uiState.year, uiState.month)
 
     // 计算总行数
     val rows = (daysOfMonth + startDayOfWeek - 1 + 6) / 7 // 向上取整到最接近的7的倍数
