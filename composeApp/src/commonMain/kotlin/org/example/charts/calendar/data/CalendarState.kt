@@ -9,4 +9,5 @@ data class CalendarState(
     val targetDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault()),  // 当前显示的月份
     val selectedDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault()), // 用户选择的具体日期,默认为今日
     val biorhythmState: List<BiorhythmState> = emptyList(),    // 当前月份的生物节律
+    val model: CalendarModel = CalendarModel.WEEKLY
 )

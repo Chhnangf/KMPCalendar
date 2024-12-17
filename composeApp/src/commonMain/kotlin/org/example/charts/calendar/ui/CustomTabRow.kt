@@ -21,29 +21,35 @@ fun CustomTabRow(
     itemsName: List<String>,
     content: @Composable (Int) -> Unit
 ) {
-    Row(
-        modifier = Modifier.width(120.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
 
-        itemsName.forEachIndexed { index, s ->
+        Row(
+            modifier = Modifier.width(180.dp).background(Color.LightGray),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
 
-            val selectedTab = if(tabSelected == index) Color.LightGray else Color.White
-            val selectedText = if(tabSelected == index) Color.White else Color.Black
+            itemsName.forEachIndexed { index, s ->
 
-            Box(modifier = Modifier.weight(1f).height(25.dp).padding(2.dp).clip(RoundedCornerShape(4.dp)).border(1.dp,
-                Color.Gray,
-                RoundedCornerShape(4.dp)
-            ).background(selectedTab, RoundedCornerShape(4.dp))
-                .clickable { onTabSelected(index) },
-                contentAlignment = Alignment.Center
-            ) {
-                Text(text = s, color = selectedText)
+                val selectedTab = if (tabSelected == index) Color.White else Color.Transparent
+                val selectBorder = if (tabSelected == index) Color.Gray else Color.Transparent
+                val selectedText = if (tabSelected == index) Color.Black else Color.White
+
+                Box(
+                    modifier = Modifier.weight(1f).height(25.dp).padding(1.dp).clip(RoundedCornerShape(4.dp)).border(
+                        1.dp,
+                        selectBorder,
+                        RoundedCornerShape(4.dp)
+                    ).background(selectedTab, RoundedCornerShape(4.dp))
+                        .clickable { onTabSelected(index) },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = s, color = selectedText)
+                }
             }
         }
-    }
-    Column() {
-        content(tabSelected)
+        Column() {
+            content(tabSelected)
+        }
     }
 }

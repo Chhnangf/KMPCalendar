@@ -4,12 +4,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -23,6 +18,11 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
+import kotlinx.coroutines.launch
+import org.example.charts.calendar.utils.MAX_CHART_BAR_WIDTH
+import org.example.charts.calendar.utils.MAX_CHART_TEXT_SIZE
+import org.example.charts.calendar.utils.MIN_CHART_BAR_WIDTH
+import org.example.charts.calendar.utils.MIN_CHART_TEXT_SIZE
 import org.example.charts.charts.internal.AnimationSpec
 import org.example.charts.charts.internal.DEFAULT_SCALE
 import org.example.charts.charts.internal.MAX_SCALE
@@ -32,6 +32,7 @@ import org.example.charts.charts.internal.common.model.ChartData
 import org.example.charts.charts.style.BarChartStyle
 import org.example.charts.charts.testTag
 import kotlin.math.abs
+import kotlin.math.max
 
 
 @OptIn(ExperimentalTextApi::class)
@@ -42,29 +43,37 @@ internal fun BarChart(
     onValueChanged: (Int) -> Unit = {}
 ) {
     val barColor = style.barColor
+    // 使用 rememberUpdatedState 来获取最新的 chartData
+    val currentChartData by rememberUpdatedState(chartData)
     var progress by remember {
         mutableStateOf<List<Animatable<Float, AnimationVector1D>>>(chartData.points.map { value ->
             Animatable(0f)
         })
     }
 
-    val maxValue = remember { chartData.points.max() }
-    val minValue = remember { chartData.points.min() }
-    var selectedIndex by remember { mutableStateOf(NO_SELECTION) }
-    val textMeasurer = rememberTextMeasurer()
-    // When chartData value was changed then make action
-    // 设定 progress 的初始值
+    // 监听 chartData 的变化，并根据需要调整 progress 的长度
+    LaunchedEffect(currentChartData) {
+        val newPointsSize = currentChartData.points.size
+        if (newPointsSize != progress.size) {
+            progress = List(newPointsSize) { index ->
+                if (index < progress.size) progress[index] else Animatable(0f)
+            }
+        }
 
-    // 保险措施，避免索引溢出边界导致崩溃
-    chartData.points.forEachIndexed { index, value ->
-
-        LaunchedEffect(chartData.points) {
-            progress[index].animateTo(
-                targetValue = abs(value).toFloat(),
-                animationSpec = AnimationSpec.barChart(index)
-            )
+        // 动态更新每个 Animatable 的目标值
+        progress.forEachIndexed { index, animatable ->
+            launch {
+                animatable.snapTo(0f) // 确保从头开始动画
+                animatable.animateTo(
+                    targetValue = abs(currentChartData.points.getOrNull(index)?.toFloat() ?: 0f),
+                    animationSpec = AnimationSpec.barChart(index)
+                )
+            }
         }
     }
+
+    var selectedIndex by remember { mutableStateOf(NO_SELECTION) }
+    val textMeasurer = rememberTextMeasurer()
 
     Canvas(modifier = style.modifier
         .testTag(TestTags.BAR_CHART)
@@ -93,8 +102,6 @@ internal fun BarChart(
             progress = progress,
             selectedIndex = selectedIndex,
             barColor = barColor,
-            maxValue = maxValue,
-            minValue = minValue,
             textMeasurer
         )
     })
@@ -111,10 +118,12 @@ private fun DrawScope.drawBars(
     progress: List<Animatable<Float, AnimationVector1D>>,
     selectedIndex: Int,
     barColor: Color,
-    maxValue: Double,
-    minValue: Double,
     textMeasurer: TextMeasurer
 ) {
+    // 每次绘制时重新计算最大值和最小值
+    val maxValue = chartData.points.maxOrNull() ?: 0.0
+    val minValue = chartData.points.minOrNull() ?: 0.0
+
     val baselineY = size.height * (maxValue / (maxValue - minValue))
     val dataSize = chartData.points.size
 
@@ -133,8 +142,9 @@ private fun DrawScope.drawBars(
         end = Offset(x = size.width, y = size.height), // X轴刻度线的终点
         strokeWidth = 1f // X轴刻度线的宽度
     )
-
+    println("barWidth = ${(size.width - 4.0f * (dataSize - 1)) / dataSize}")
     chartData.points.forEachIndexed { index, value ->
+        if (index >= progress.size) return // 防止索引越界
 
         val spacing = style.space.toPx()
         val barWidth = (size.width - spacing * (dataSize - 1)) / dataSize
@@ -162,7 +172,9 @@ private fun DrawScope.drawBars(
             )
         )
         // 动态计算文本大小
-        val dynamicTextSize = maxOf(5, (barWidth2 * 0.1f).toInt()) // 基于条形宽度的百分比计算文本大小
+        //val dynamicTextSize = max(0.2f, (barWidth2 * 0.9f)) // 基于条形宽度的百分比计算文本大小
+        val dynamicTextSize =lerp(MIN_CHART_TEXT_SIZE, MAX_CHART_TEXT_SIZE,
+            (barWidth - MIN_CHART_BAR_WIDTH) / (MAX_CHART_BAR_WIDTH - MIN_CHART_BAR_WIDTH))
         // 测量文本
         val text = "${index + 1}" // 要绘制的文本
         val textLayoutResult = textMeasurer.measure(

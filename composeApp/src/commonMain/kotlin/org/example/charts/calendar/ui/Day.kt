@@ -17,16 +17,15 @@ import kotlinx.datetime.*
 import org.example.charts.calendar.data.CalendarViewModel
 
 @Composable
-fun Day(vm: CalendarViewModel, index: Int) {
+fun Day(vm: CalendarViewModel, localDate: LocalDate) {
     val nowDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 
     val calendar by vm.calendarState.collectAsState()
     val isToday = calendar.selectedDate.year == nowDate.year &&
             calendar.selectedDate.month.number == nowDate.monthNumber &&
-            index == nowDate.dayOfMonth
-    val isSelectedDay = calendar.targetDate.year == calendar.selectedDate.year &&
-            calendar.targetDate.month.number == calendar.selectedDate.monthNumber &&
-        calendar.selectedDate.dayOfMonth == index
+            localDate.dayOfMonth == nowDate.dayOfMonth
+    val isSelectedDay =
+        calendar.selectedDate.dayOfMonth == localDate.dayOfMonth
 
     val backgroundColor = if (isSelectedDay) Color.Black else Color.LightGray
     val textColor = if (isSelectedDay) Color.White else Color.Black
@@ -34,7 +33,7 @@ fun Day(vm: CalendarViewModel, index: Int) {
     Box(
         modifier = Modifier.width(60.dp).height(40.dp).padding(4.dp)
             .clickable {
-                vm.onSelectedDate(LocalDate(calendar.selectedDate.year, calendar.selectedDate.month.number, index))
+                vm.onSelectedDate(localDate)
 
             }) {
         Column {
@@ -56,7 +55,7 @@ fun Day(vm: CalendarViewModel, index: Int) {
                         .background(backgroundColor, RoundedCornerShape(6.dp)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = if (isToday) "今" else index.toString(), color = textColor)
+                    Text(text = if (isToday) "今" else localDate.dayOfMonth.toString(), color = textColor)
                 }
             }
         }
