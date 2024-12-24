@@ -1,12 +1,15 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.*
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+//    signing
+//    alias(libs.plugins.mavenPublish)
 }
 
 kotlin {
@@ -15,6 +18,7 @@ kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
+        //publishLibraryVariants("release", "debug")
     }
     
     listOf(
@@ -48,6 +52,8 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.kotlinx.datetime)
+
+            implementation(project(":charts"))
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -57,7 +63,7 @@ kotlin {
 }
 
 android {
-    namespace = "org.example.charts"
+    namespace = "io.github.chhnangf"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {

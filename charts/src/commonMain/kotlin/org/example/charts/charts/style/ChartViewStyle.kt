@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -61,7 +61,7 @@ object ChartViewDefaults {
         innerPadding: Dp = 15.dp,
         cornerRadius: Dp = 15.dp,
         shadow: Dp = 15.dp,
-        backgroundColor: Color = MaterialTheme.colors.surface,
+        backgroundColor: Color = MaterialTheme.colorScheme.surface,
     ): ChartViewStyle {
 
         val modifierTitle: Modifier = Modifier.padding(top = innerPadding, start = innerPadding)
@@ -85,7 +85,7 @@ object ChartViewDefaults {
 
         val titleStyle = TextStyle(
             fontSize = 14.sp,
-            color = MaterialTheme.colors.onBackground,
+            color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Start,
             fontWeight = FontWeight.ExtraBold
         )

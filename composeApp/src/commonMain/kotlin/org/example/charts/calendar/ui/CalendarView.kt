@@ -147,9 +147,7 @@ private fun MonthlyCalendar(vm: CalendarViewModel, state: CalendarState) {
                 }
             }
         }
-//        if (row < rows) {
-//            Spacer(modifier = Modifier.height(2.dp)) // Space between rows
-//        }
+
     }
 }
 

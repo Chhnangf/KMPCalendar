@@ -18,6 +18,19 @@ kotlinx-coroutines = "1.9.0"
 
 datetime = "0.6.0"
 
+mavenPublish = "0.28.0"
+
+# Java version
+java = "17"
+
+# Kotlin compatibility
+# https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-compatibility-and-versioning.html#kotlin-compatibility
+compose = "1.6.7"
+compose-plugin = "1.6.1"
+kotlinCompilerPlugin = "1.5.10.1"
+kotlin-multiplatform = "1.9.23"
+kotlinCompilerExtensionVersion = "1.5.9"
+
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
@@ -39,4 +52,5 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }

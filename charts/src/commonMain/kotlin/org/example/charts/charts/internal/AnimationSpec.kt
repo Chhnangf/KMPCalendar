@@ -8,14 +8,14 @@ internal object AnimationSpec {
 
     private fun duration(
         index: Int,
-        duration: Int = ANIMATION_DURATION,
-        offset: Int = ANIMATION_OFFSET
+        duration: Int = org.example.charts.charts.internal.ANIMATION_DURATION,
+        offset: Int = org.example.charts.charts.internal.ANIMATION_OFFSET
     ): Int {
         return duration + offset * index
     }
 
     fun lineChart() = TweenSpec<Float>(
-        durationMillis = ANIMATION_DURATION_LINE,
+        durationMillis = org.example.charts.charts.internal.ANIMATION_DURATION_LINE,
         delay = 0,
         easing = LinearEasing
     )
@@ -29,7 +29,7 @@ internal object AnimationSpec {
     fun stackedBar(index: Int) = TweenSpec<Float>(
         durationMillis = duration(
             index = index,
-            duration = ANIMATION_DURATION_BAR
+            duration = org.example.charts.charts.internal.ANIMATION_DURATION_BAR
         ),
         delay = 0,
         easing = LinearEasing
@@ -37,7 +37,7 @@ internal object AnimationSpec {
 
     fun pieChart(index: Int) = TweenSpec<Float>(
         durationMillis = duration(index = index),
-        delay = index * ANIMATION_OFFSET,
+        delay = index * org.example.charts.charts.internal.ANIMATION_OFFSET,
         easing = LinearEasing
     )
 

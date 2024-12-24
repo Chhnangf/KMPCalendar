@@ -7,6 +7,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.input.pointer.pointerInput
@@ -19,20 +20,15 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import kotlinx.coroutines.launch
-import org.example.charts.calendar.utils.MAX_CHART_BAR_WIDTH
-import org.example.charts.calendar.utils.MAX_CHART_TEXT_SIZE
-import org.example.charts.calendar.utils.MIN_CHART_BAR_WIDTH
-import org.example.charts.calendar.utils.MIN_CHART_TEXT_SIZE
 import org.example.charts.charts.internal.AnimationSpec
 import org.example.charts.charts.internal.DEFAULT_SCALE
 import org.example.charts.charts.internal.MAX_SCALE
 import org.example.charts.charts.internal.NO_SELECTION
 import org.example.charts.charts.internal.TestTags
 import org.example.charts.charts.internal.common.model.ChartData
-import org.example.charts.charts.style.BarChartStyle
+import org.example.charts.charts.style.*
 import org.example.charts.charts.testTag
 import kotlin.math.abs
-import kotlin.math.max
 
 
 @OptIn(ExperimentalTextApi::class)
@@ -72,11 +68,11 @@ internal fun BarChart(
         }
     }
 
-    var selectedIndex by remember { mutableStateOf(NO_SELECTION) }
+    var selectedIndex by remember { mutableStateOf(org.example.charts.charts.internal.NO_SELECTION) }
     val textMeasurer = rememberTextMeasurer()
 
     Canvas(modifier = style.modifier
-        .testTag(TestTags.BAR_CHART)
+        .testTag(org.example.charts.charts.internal.TestTags.BAR_CHART)
         .pointerInput(Unit) {
             detectDragGestures(
                 onDrag = { change, _ ->
@@ -90,8 +86,8 @@ internal fun BarChart(
                     change.consume()
                 },
                 onDragEnd = {
-                    selectedIndex = NO_SELECTION
-                    onValueChanged(NO_SELECTION)
+                    selectedIndex = org.example.charts.charts.internal.NO_SELECTION
+                    onValueChanged(org.example.charts.charts.internal.NO_SELECTION)
                 }
             )
         }, onDraw = {
@@ -127,13 +123,13 @@ private fun DrawScope.drawBars(
     val baselineY = size.height * (maxValue / (maxValue - minValue))
     val dataSize = chartData.points.size
 
-    // 绘制Y轴刻度线
-    drawLine(
-        color = Color.Gray, // X轴刻度线的颜色，这里使用灰色作为示例
-        start = Offset(x = 0f, y = 0f), // X轴刻度线的起点
-        end = Offset(x = 0f, y = size.height), // X轴刻度线的终点
-        strokeWidth = 1f // X轴刻度线的宽度
+    val colorStops =  arrayOf(
+        0.0f to Color(0xAAC8ADD8),
+        1f to Color(0xAAFCBBC3)
     )
+
+    var brush = Brush.verticalGradient(colorStops = colorStops)
+
 
     // 绘制X轴刻度线
     drawLine(
@@ -142,53 +138,59 @@ private fun DrawScope.drawBars(
         end = Offset(x = size.width, y = size.height), // X轴刻度线的终点
         strokeWidth = 1f // X轴刻度线的宽度
     )
-    println("barWidth = ${(size.width - 4.0f * (dataSize - 1)) / dataSize}")
+
     chartData.points.forEachIndexed { index, value ->
         if (index >= progress.size) return // 防止索引越界
 
         val spacing = style.space.toPx()
-        val barWidth = (size.width - spacing * (dataSize - 1)) / dataSize
-        val barWidth2 = size.width / dataSize - spacing
+        //val barWidth = (size.width - spacing * (dataSize - 1)) / dataSize
+        val barWidth = size.width / dataSize - spacing
 
-        val selectedBarScale = if (index == selectedIndex) MAX_SCALE else DEFAULT_SCALE
+        val selectedBarScale = if (index == selectedIndex) org.example.charts.charts.internal.MAX_SCALE else org.example.charts.charts.internal.DEFAULT_SCALE
         val finalBarHeight =
             size.height * selectedBarScale * (abs(value) / (maxValue - minValue)) / 100
 
-
-        val barHeight = if (value.toInt() != 0)
+        val barHeight =
             lerp(0f, finalBarHeight.toFloat(), progress[index].value)
-        else
-            size.height / 2 * 0.1f
 
         val top = if (value >= 0) baselineY - barHeight else baselineY
-        val left = (barWidth2 + spacing) * index- 0.1f
+        val left = (barWidth + spacing) * index- 0.1f
 
         drawRect(
-            color = if (value.toInt() != 0) barColor else Color.Red,
+            brush = brush,
             topLeft = Offset(x = left, y = top.toFloat()),
             size = Size(
-                width = barWidth2 * selectedBarScale,
+                width = barWidth * selectedBarScale,
                 height = barHeight
             )
         )
+        // 临界值日期提醒
+        drawLine(
+            color = if (value.toInt() == 0) Color.Red else Color.Transparent,
+            start = Offset(x = left, y = baselineY.toFloat()),
+            end = Offset(x = left+barWidth, y = baselineY.toFloat()),
+            alpha = 1f // 不透明度
+        )
+
+        // x轴详细刻度
+        drawLine(
+            color = Color.Gray,
+            start = Offset(x = left+barWidth, y = size.height),
+            end = Offset(x = left+barWidth, y = size.height - 5),
+        )
         // 动态计算文本大小
-        //val dynamicTextSize = max(0.2f, (barWidth2 * 0.9f)) // 基于条形宽度的百分比计算文本大小
         val dynamicTextSize =lerp(MIN_CHART_TEXT_SIZE, MAX_CHART_TEXT_SIZE,
             (barWidth - MIN_CHART_BAR_WIDTH) / (MAX_CHART_BAR_WIDTH - MIN_CHART_BAR_WIDTH))
-        // 测量文本
         val text = "${index + 1}" // 要绘制的文本
         val textLayoutResult = textMeasurer.measure(
             text = text,
             style = TextStyle(fontSize = dynamicTextSize.sp),
         )
 
-
-
-
         drawText(
             textLayoutResult = textLayoutResult,
             color = Color.Black, // 使用条形相同的颜色
-            topLeft = Offset(x = left + barWidth2 / 2, y = size.height), // 居中对齐文本
+            topLeft = Offset(x = left + barWidth / 2, y = size.height), // 居中对齐文本
             alpha = 1f // 不透明度
         )
 

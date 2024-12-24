@@ -30,7 +30,6 @@ class CalendarViewModel : ViewModel() {
     // 提供一个方法来更新日期
     fun updateDate(offset: Int, model: CalendarModel) {
         val newDate = if (model.isWeekly()) {
-            //val newDate = if(model == CalendarModel.WEEKLY) {
             _calendarState.value.targetDate.plus(DatePeriod(days = offset * 7))
         } else {
             _calendarState.value.targetDate.plus(DatePeriod(months = offset))

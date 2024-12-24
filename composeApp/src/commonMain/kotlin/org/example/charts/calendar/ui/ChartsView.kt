@@ -13,9 +13,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.example.charts.calendar.data.CalendarViewModel
 import org.example.charts.charts.BarChartView
+import org.example.charts.charts.LineChartView
 import org.example.charts.charts.model.ChartDataSet
 import org.example.charts.charts.style.BarChartDefaults
 import org.example.charts.charts.style.BarChartStyle
+import org.example.charts.charts.style.LineChartDefaults
 
 @Composable
 fun BarView(vm: CalendarViewModel,title:String, items: List<Float>,style: BarChartStyle = BarChartDefaults. style()) {
@@ -30,6 +32,23 @@ fun BarView(vm: CalendarViewModel,title:String, items: List<Float>,style: BarCha
                 style = BarChartDefaults.style(
                     space = 2.dp,
                 )
+            )
+        }
+    }
+
+}
+
+@Composable
+fun LineView(vm: CalendarViewModel,title:String, items: List<Float>,style: BarChartStyle = BarChartDefaults. style()) {
+    Column(horizontalAlignment = Alignment.Start) {
+        Text(text = title, fontSize = 24.sp)
+        Box(modifier = Modifier.width(400.dp).height(200.dp)) {
+            LineChartView(
+                dataSet = ChartDataSet(
+                    items = items,
+                    title = title,
+                ),
+                style = LineChartDefaults.style()
             )
         }
     }

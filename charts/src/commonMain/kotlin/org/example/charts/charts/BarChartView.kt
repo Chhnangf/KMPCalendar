@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -64,14 +64,14 @@ private fun ChartContent(
     var title by remember { mutableStateOf(dataSet.data.label) }
     Text(
             modifier = style.chartViewStyle.modifierTopTitle
-                .testTag(TestTags.CHART_TITLE),
+                .testTag(org.example.charts.charts.internal.TestTags.CHART_TITLE),
             text = title,
             //style = style.chartViewStyle.styleTitle
         )
     ChartView(chartViewsStyle = style.chartViewStyle) {
         BarChart(chartData = dataSet.data.item, style = style) {
             title = when (it) {
-                NO_SELECTION -> dataSet.data.label
+                org.example.charts.charts.internal.NO_SELECTION -> dataSet.data.label
                 else -> dataSet.data.item.labels[it]
             }
         }
@@ -83,7 +83,7 @@ internal fun ChartErrors(chartViewStyle: ChartViewStyle, errors: List<String>) {
         Column(
             modifier = chartViewStyle.modifierMain
                 .padding(15.dp)
-                .testTag(TestTags.CHART_ERROR)
+                .testTag(org.example.charts.charts.internal.TestTags.CHART_ERROR)
         ) {
             errors.forEach { error ->
                 println("ChartErrors = $error")
@@ -91,12 +91,12 @@ internal fun ChartErrors(chartViewStyle: ChartViewStyle, errors: List<String>) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = MaterialTheme.colors.error,
+                            color = MaterialTheme.colorScheme.error,
                             shape = RoundedCornerShape(5.dp)
                         )
                         .padding(5.dp),
                     text = "$error\n",
-                    color = MaterialTheme.colors.error
+                    color = MaterialTheme.colorScheme.error
                 )
                 Spacer(modifier = Modifier.height(5.dp))
             }
